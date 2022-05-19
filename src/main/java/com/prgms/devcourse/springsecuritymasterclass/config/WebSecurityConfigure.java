@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -12,8 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 import javax.servlet.http.HttpServletResponse;
+
+import java.util.List;
 
 import static java.lang.String.format;
 
@@ -28,7 +32,8 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
 
         auth.inMemoryAuthentication()
                 .withUser("user").password(format("{%s}user123", idForEncode)).roles("USER").and()
-                .withUser("admin").password(format("{%s}admin123", idForEncode)).roles("ADMIN");
+                .withUser("admin01").password(format("{%s}admin123", idForEncode)).roles("ADMIN").and()
+                .withUser("admin02").password(format("{%s}admin123", idForEncode)).roles("ADMIN");
     }
 
     @Override
@@ -43,9 +48,9 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .antMatchers("/me").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/admin").access("hasRole('ADMIN') and isFullyAuthenticated()")
                 .anyRequest().permitAll()
-//                .accessDecisionManager(new UnanimousBased(List.of(
-//                        new WebExpressionVoter(),
-//                        new OddAdminVoter())))
+                .accessDecisionManager(new UnanimousBased(List.of(
+                        new WebExpressionVoter(),
+                        new OddAdminVoter())))
                 .and()
             .formLogin()
                 .defaultSuccessUrl("/")

@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,14 +16,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Configuration
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -42,23 +46,34 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .antMatchers("/assets/**");
     }
 
+    @Bean
+    public AccessDecisionManager customAccessDecisionManager(){
+        List<AccessDecisionVoter<?>> voters = new ArrayList<>();
+        voters.add(new WebExpressionVoter());
+        voters.add(new OddAdminVoter(new AntPathRequestMatcher("/admin")));
+        return new UnanimousBased(voters);
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers("/me").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/admin").access("hasRole('ADMIN') and isFullyAuthenticated()")
                 .anyRequest().permitAll()
-                .accessDecisionManager(new UnanimousBased(List.of(
-                        new WebExpressionVoter(),
-                        new OddAdminVoter())))
+                .accessDecisionManager(customAccessDecisionManager())
                 .and()
             .formLogin()
                 .defaultSuccessUrl("/")
                 .permitAll()
                 .and()
+
+            /* 로그아웃 설정 */
             .logout()
                 .logoutSuccessUrl("/")
                 .and()
+            /*
+            *  remember me 설정
+            **/
             .rememberMe().tokenValiditySeconds(300)
                 .key("my-remember-key")
                 .rememberMeParameter("remember")

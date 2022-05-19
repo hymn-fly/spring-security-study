@@ -11,5 +11,6 @@
 <h1>index Page!!</h1>
 <br/>
 <span sec:authentication="name"></span> 님 반갑습니다.
+<span th:text="${#authentication.getAuthorities()}"></span>
 </body>
 </html>

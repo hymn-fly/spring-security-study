@@ -1,12 +1,18 @@
 package com.prgms.devcourse.springsecuritymasterclass.user;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import lombok.Getter;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="groups")
+@Getter
 class Group extends BaseEntity{
 
     private String name;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "group")
+    private List<GroupPermission> permissions = new ArrayList<>();
 }

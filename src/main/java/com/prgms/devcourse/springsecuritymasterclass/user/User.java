@@ -20,7 +20,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name="passwd", length=80)
     private String passWord;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name="group_id")
     private Group group;
 

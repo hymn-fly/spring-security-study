@@ -10,11 +10,11 @@ import javax.persistence.*;
 @Getter
 class GroupPermission extends BaseEntity{
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="group_id")
     private Group group;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name="permission_id")
     private Permission permission;
 

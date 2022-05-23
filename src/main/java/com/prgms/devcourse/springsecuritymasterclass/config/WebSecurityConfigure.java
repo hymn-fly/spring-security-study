@@ -2,6 +2,7 @@ package com.prgms.devcourse.springsecuritymasterclass.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
@@ -19,6 +20,8 @@ import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+import javax.xml.crypto.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,20 +33,35 @@ import static java.lang.String.format;
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Autowired
+    private DataSource dataSource;
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        String idForEncode = "noop";
+        auth.jdbcAuthentication().dataSource(dataSource)
+                .usersByUsernameQuery("SELECT login_id, passwd, true " +
+                        "FROM users " +
+                        "where login_id = ?;")
+                .groupAuthoritiesByUsername(
+                        "SELECT g.id, g.name, p.name FROM users u " +
+                                "JOIN groups g ON u.group_id=g.id " +
+                                "JOIN group_permission gp ON g.id=gp.group_id " +
+                                "JOIN permissions p ON gp.permission_id=p.id " +
+                                "where login_id=?;"
+                ).getUserDetailsService().setEnableAuthorities(false);
+//                .authoritiesByUsernameQuery();
+        /*String idForEncode = "noop";
 
         auth.inMemoryAuthentication()
                 .withUser("user").password(format("{%s}user123", idForEncode)).roles("USER").and()
                 .withUser("admin01").password(format("{%s}admin123", idForEncode)).roles("ADMIN").and()
-                .withUser("admin02").password(format("{%s}admin123", idForEncode)).roles("ADMIN");
+                .withUser("admin02").password(format("{%s}admin123", idForEncode)).roles("ADMIN");*/
     }
 
     @Override
     public void configure(WebSecurity web){
         web.ignoring()
-                .antMatchers("/assets/**");
+                .antMatchers("/assets/**", "/h2-console/**");
     }
 
     @Bean
@@ -79,7 +97,8 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .rememberMeParameter("remember")
                 .and()
                 .exceptionHandling()
-                .accessDeniedHandler(accessDeniedHandler()).and()
+                .accessDeniedHandler(accessDeniedHandler())
+                .and()
 //                .sessionManagement()
 //                .sessionFixation().changeSessionId()
 //                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

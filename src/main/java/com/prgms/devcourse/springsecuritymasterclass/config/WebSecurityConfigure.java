@@ -49,7 +49,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                                 "JOIN permissions p ON gp.permission_id=p.id " +
                                 "where login_id=?;"
                 ).getUserDetailsService().setEnableAuthorities(false);
-//                .authoritiesByUsernameQuery();
         /*String idForEncode = "noop";
 
         auth.inMemoryAuthentication()

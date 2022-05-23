@@ -1,9 +1,9 @@
 package com.prgms.devcourse.springsecuritymasterclass.config;
 
+import com.prgms.devcourse.springsecuritymasterclass.user.User;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -35,7 +35,8 @@ public class OddAdminVoter implements AccessDecisionVoter<FilterInvocation> {
     public int vote(Authentication authentication, FilterInvocation object, Collection<ConfigAttribute> attributes) {
         if(!requiresAuthorization(object.getRequest()))
             return ACCESS_GRANTED;
-        User user = (User)authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
+        authentication.getPrincipal();
         String username = user.getUsername();
         Matcher matcher = PATTERN.matcher(username);
         if(matcher.find()){

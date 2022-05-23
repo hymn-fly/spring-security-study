@@ -4,15 +4,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name="users")
-class User extends BaseEntity implements UserDetails {
+public class User extends BaseEntity implements UserDetails {
 
     @Column(name="login_id", length = 20)
     private String loginId;
@@ -20,41 +20,44 @@ class User extends BaseEntity implements UserDetails {
     @Column(name="passwd", length=80)
     private String passWord;
 
-    @Column(name="group_id")
-    private Long groupId;
+    @ManyToOne
+    @JoinColumn(name="group_id")
+    private Group group;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return this.group.getPermissions()
+                .stream().map(GroupPermission::getPermission)
+                .collect(Collectors.toList());
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return passWord;
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return loginId;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true ;
     }
 }

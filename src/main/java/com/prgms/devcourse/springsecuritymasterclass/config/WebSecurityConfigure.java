@@ -1,5 +1,6 @@
 package com.prgms.devcourse.springsecuritymasterclass.config;
 
+import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import javax.xml.crypto.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +33,22 @@ import static java.lang.String.format;
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+
+    private final UserService userService;
+
+    public WebSecurityConfigure(UserService userService, DataSource dataSource) {
+        this.userService = userService;
+        this.dataSource = dataSource;
+    }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        /* custom UserDetailsService */
+        auth.userDetailsService(userService);
+
+        /* JdbcUserDetailsManager
+        *
         auth.jdbcAuthentication().dataSource(dataSource)
                 .usersByUsernameQuery("SELECT login_id, passwd, true " +
                         "FROM users " +
@@ -48,8 +59,12 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                                 "JOIN group_permission gp ON g.id=gp.group_id " +
                                 "JOIN permissions p ON gp.permission_id=p.id " +
                                 "where login_id=?;"
-                ).getUserDetailsService().setEnableAuthorities(false);
-        /*String idForEncode = "noop";
+                ).getUserDetailsService().setEnableAuthorities(false);*/
+
+
+        /*
+        * InMemoryUserDetailsManager
+        String idForEncode = "noop";
 
         auth.inMemoryAuthentication()
                 .withUser("user").password(format("{%s}user123", idForEncode)).roles("USER").and()

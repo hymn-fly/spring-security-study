@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -28,18 +29,16 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @Configuration
+@EnableJdbcHttpSession
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final DataSource dataSource;
-
     private final UserService userService;
 
-    public WebSecurityConfigure(UserService userService, DataSource dataSource) {
+    public WebSecurityConfigure(UserService userService) {
         this.userService = userService;
-        this.dataSource = dataSource;
     }
 
     @Override

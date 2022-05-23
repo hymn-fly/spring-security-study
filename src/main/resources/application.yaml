@@ -4,16 +4,17 @@ spring:
       enabled: true
 
   datasource:
-    url: "jdbc:h2:mem:spring-security;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1;"
+    url: "jdbc:h2:file:./database/spring-security;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1;"
     username: sa
     password:
     driver-class-name: "org.h2.Driver"
   sql:
     init:
       platform: h2
-      schema-locations: classpath:sql/schema.sql
+      schema-locations: classpath:sql/schema.sql, classpath:org/springframework/session/jdbc/schema-h2.sql
       data-locations: classpath:sql/data.sql
       encoding: UTF-8
+      mode: always
 
   application:
     name: spring security 01
@@ -31,6 +32,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
+
 #  ssl:
 #    enabled: true
 #    key-alias: prgrms_keystore

@@ -1,4 +1,20 @@
 spring:
+  h2:
+    console:
+      enabled: true
+
+  datasource:
+    url: "jdbc:h2:mem:spring-security;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1;"
+    username: sa
+    password:
+    driver-class-name: "org.h2.Driver"
+  sql:
+    init:
+      platform: h2
+      schema-locations: classpath:sql/schema.sql
+      data-locations: classpath:sql/data.sql
+      encoding: UTF-8
+
   application:
     name: spring security 01
   thymeleaf:
@@ -12,8 +28,6 @@ spring:
     basename: i18n/messages
     encoding: UTF-8
     cache-duration: PT1H
-server:
-  port: 8080
 #  ssl:
 #    enabled: true
 #    key-alias: prgrms_keystore

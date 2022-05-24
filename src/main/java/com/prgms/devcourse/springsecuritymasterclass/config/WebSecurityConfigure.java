@@ -1,9 +1,10 @@
 package com.prgms.devcourse.springsecuritymasterclass.config;
 
+import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
+import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
@@ -14,31 +15,33 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Configuration
-@EnableJdbcHttpSession
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final UserService userService;
 
-    public WebSecurityConfigure(UserService userService) {
+    private final JwtConfiguration jwtConfiguration;
+
+    public WebSecurityConfigure(UserService userService, JwtConfiguration jwtConfiguration) {
         this.userService = userService;
+        this.jwtConfiguration = jwtConfiguration;
     }
 
     @Override
@@ -85,30 +88,49 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
         return new UnanimousBased(voters);
     }
 
+    @Bean
+    Jwt jwt(JwtConfiguration jwtConfiguration){
+        return new Jwt(
+                jwtConfiguration.getIssuer(),
+                jwtConfiguration.getClientSecret(),
+                jwtConfiguration.getExpirySeconds()
+                );
+    }
+
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/me").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/admin").access("hasRole('ADMIN') and isFullyAuthenticated()")
+                .antMatchers("/api/user/me").hasAnyRole("USER", "ADMIN")
+//                .antMatchers("/admin").access("hasRole('ADMIN') and isFullyAuthenticated()")
                 .anyRequest().permitAll()
                 .accessDecisionManager(customAccessDecisionManager())
                 .and()
-            .formLogin()
-                .defaultSuccessUrl("/")
-                .permitAll()
-                .and()
+                .formLogin(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .headers(AbstractHttpConfigurer::disable)
+                .rememberMe(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilter(new JwtAuthenticationFilter(jwt(jwtConfiguration)))
+//                .addFilterAt(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+//            .formLogin()
+//                .defaultSuccessUrl("/")
+//                .permitAll()
+//                .and()
 
             /* 로그아웃 설정 */
-            .logout()
-                .logoutSuccessUrl("/")
-                .and()
+//            .logout()
+//                .logoutSuccessUrl("/")
+//                .and()
             /*
             *  remember me 설정
             **/
-            .rememberMe().tokenValiditySeconds(300)
-                .key("my-remember-key")
-                .rememberMeParameter("remember")
-                .and()
+//            .rememberMe().tokenValiditySeconds(300)
+//                .key("my-remember-key")
+//                .rememberMeParameter("remember")
+//                .and()
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler())
                 .and()

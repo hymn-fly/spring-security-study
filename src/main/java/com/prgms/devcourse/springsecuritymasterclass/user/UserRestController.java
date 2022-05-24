@@ -5,8 +5,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api")
 public class UserRestController {
@@ -18,6 +16,11 @@ public class UserRestController {
     public UserRestController(Jwt jwt, UserService userService) {
         this.jwt = jwt;
         this.userService = userService;
+    }
+
+    @GetMapping("/user/me")
+    public String me(){
+        return "Hello world";
     }
 
     @GetMapping("/users/{username}/token")

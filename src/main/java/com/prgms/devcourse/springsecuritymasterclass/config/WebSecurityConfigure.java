@@ -1,10 +1,10 @@
 package com.prgms.devcourse.springsecuritymasterclass.config;
 
 import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
+import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,7 +25,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +39,11 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
 
     private final UserService userService;
 
-    public WebSecurityConfigure(UserService userService) {
+    private final JwtConfiguration jwtConfiguration;
+
+    public WebSecurityConfigure(UserService userService, JwtConfiguration jwtConfiguration) {
         this.userService = userService;
+        this.jwtConfiguration = jwtConfiguration;
     }
 
     @Override
@@ -106,13 +109,14 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .anyRequest().permitAll()
                 .accessDecisionManager(customAccessDecisionManager())
                 .and()
-                .formLogin().disable()
-                .csrf().disable()
-                .logout().disable()
-                .headers().disable()
-                .rememberMe().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .formLogin(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .headers(AbstractHttpConfigurer::disable)
+                .rememberMe(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilter(new JwtAuthenticationFilter(jwt(jwtConfiguration)))
+//                .addFilterAt(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //            .formLogin()
 //                .defaultSuccessUrl("/")
 //                .permitAll()

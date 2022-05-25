@@ -2,14 +2,17 @@ package com.prgms.devcourse.springsecuritymasterclass.config;
 
 import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
+import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationProvider;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -19,36 +22,64 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.String.format;
+import java.util.Map;
 
 @EnableWebSecurity(debug = true)
 @Configuration
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final UserService userService;
+    private JwtConfiguration jwtConfiguration;
 
-    private final JwtConfiguration jwtConfiguration;
+    private UserService userService;
 
-    public WebSecurityConfigure(UserService userService, JwtConfiguration jwtConfiguration) {
-        this.userService = userService;
+    @Autowired
+    public void setJwtConfiguration(JwtConfiguration jwtConfiguration) {
         this.jwtConfiguration = jwtConfiguration;
     }
 
+    @Autowired
+    public void setUserService(UserService userService){
+        this.userService = userService;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new DelegatingPasswordEncoder("noop", Map.of("noop", NoOpPasswordEncoder.getInstance()));
+    }
+
+    @Bean
+    public JwtAuthenticationProvider jwtAuthenticationProvider(){
+        return new JwtAuthenticationProvider(jwt(jwtConfiguration), userService);
+    }
+
+    @Autowired
+    public void configureAuthentication(AuthenticationManagerBuilder builder, JwtAuthenticationProvider provider){
+        builder.authenticationProvider(provider);
+    }
+
+    @Bean
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.authenticationProvider(jwtAuthenticationProvider());
         /* custom UserDetailsService */
-        auth.userDetailsService(userService);
+//        auth.userDetailsService(userService);
 
         /* JdbcUserDetailsManager
         *
@@ -73,7 +104,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .withUser("user").password(format("{%s}user123", idForEncode)).roles("USER").and()
                 .withUser("admin01").password(format("{%s}admin123", idForEncode)).roles("ADMIN").and()
                 .withUser("admin02").password(format("{%s}admin123", idForEncode)).roles("ADMIN");*/
-    }
+//    }
 
     @Override
     public void configure(WebSecurity web){

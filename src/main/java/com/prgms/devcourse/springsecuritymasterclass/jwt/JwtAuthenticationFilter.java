@@ -3,12 +3,9 @@ package com.prgms.devcourse.springsecuritymasterclass.jwt;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
@@ -53,9 +50,11 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             String username = claims.getUsername();
             List<GrantedAuthority> authorities = getAuthorities(claims);
 
-            if (StringUtils.hasText(username) && authorities != null && authorities.size() > 0){
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        username, null, authorities);
+            if (StringUtils.hasText(username) && authorities != null && !authorities.isEmpty()){
+                JwtAuthenticationToken authentication = new JwtAuthenticationToken(
+                        new JwtPrincipal(username, token),
+                        null,
+                        authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

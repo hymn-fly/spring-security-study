@@ -2,6 +2,7 @@ package com.prgms.devcourse.springsecuritymasterclass.user;
 
 import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class UserRestController {
 
     @GetMapping("/user/me")
     public String me(){
-        return "Hello world";
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     @GetMapping("/users/{username}/token")

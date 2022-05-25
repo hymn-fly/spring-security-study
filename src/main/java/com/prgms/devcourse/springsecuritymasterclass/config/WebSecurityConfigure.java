@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +31,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @Configuration
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -80,6 +81,8 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .antMatchers("/assets/**", "/h2-console/**");
     }
 
+
+
     @Bean
     public AccessDecisionManager customAccessDecisionManager(){
         List<AccessDecisionVoter<?>> voters = new ArrayList<>();
@@ -97,6 +100,10 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 );
     }
 
+    private JwtAuthenticationFilter jwtAuthenticationFilter(){
+        Jwt jwt = getApplicationContext().getBean(Jwt.class);
+        return new JwtAuthenticationFilter(jwt, jwtConfiguration.getHeader());
+    }
 
 
     @Override
@@ -113,7 +120,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .headers(AbstractHttpConfigurer::disable)
                 .rememberMe(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilter(new JwtAuthenticationFilter(jwt(jwtConfiguration)))
+                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
 //                .addFilterAt(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //            .formLogin()
 //                .defaultSuccessUrl("/")

@@ -174,6 +174,8 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler())
                 .and()
+//                .securityContext(context -> context.securityContextRepository())
+
 //                .sessionManagement()
 //                .sessionFixation().changeSessionId()
 //                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

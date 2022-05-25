@@ -4,7 +4,7 @@ import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationToken;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtPrincipal;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,8 +21,14 @@ public class UserRestController {
     }
 
     @GetMapping("/user/me")
-    public String me(){
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+    public UserResponse me(@AuthenticationPrincipal JwtPrincipal principal){
+        return userService.findByUsername(principal.getUsername())
+                .map(user -> new UserResponse(
+                        principal.getJwtToken(),
+                        principal.getUsername(),
+                        user.getGroup().getName())
+                )
+                .orElseThrow(() -> new IllegalArgumentException("Could not find user for " + principal.getUsername()));
     }
 
     @PostMapping("/user/login")

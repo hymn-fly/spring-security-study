@@ -16,7 +16,7 @@ public class JwtPrincipal {
         this.token = token;
     }
 
-    public String getUser() {
+    public String getUsername() {
         return this.username;
     }
 

@@ -18,7 +18,7 @@ spring:
   sql:
     init:
       platform: h2
-      schema-locations: classpath:sql/schema.sql, classpath:org/springframework/session/jdbc/schema-h2.sql
+      schema-locations: classpath:sql/schema.sql
       data-locations: classpath:sql/data.sql
       encoding: UTF-8
       mode: always

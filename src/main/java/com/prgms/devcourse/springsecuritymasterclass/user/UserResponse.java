@@ -2,11 +2,13 @@ package com.prgms.devcourse.springsecuritymasterclass.user;
 
 class UserResponse {
 
-    private final String token;
+    private String token;
 
-    private final String username;
+    private String username;
 
-    private final String group;
+    private String group;
+
+    UserResponse(){ /* for object mapper deserialization */}
 
     UserResponse(String token, String username, String group) {
         this.token = token;

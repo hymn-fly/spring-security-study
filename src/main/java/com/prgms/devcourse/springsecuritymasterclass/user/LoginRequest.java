@@ -7,4 +7,9 @@ class LoginRequest {
 
     /* For objectMapper mapping */
     public LoginRequest(){}
+
+    public LoginRequest(String user, String password){
+        this.user = user;
+        this.password = password;
+    }
 }

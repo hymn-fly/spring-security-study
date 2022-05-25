@@ -3,6 +3,7 @@ package com.prgms.devcourse.springsecuritymasterclass.config;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationProvider;
+import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtSecurityContextRepository;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
@@ -136,6 +136,11 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
         return new JwtAuthenticationFilter(jwt, jwtConfiguration.getHeader());
     }
 
+    private JwtSecurityContextRepository jwtSecurityContextRepository(){
+        Jwt jwt = getApplicationContext().getBean(Jwt.class);
+        return new JwtSecurityContextRepository(jwtConfiguration.getHeader(), jwt);
+    }
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -151,7 +156,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .headers(AbstractHttpConfigurer::disable)
                 .rememberMe(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
+//                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
 //                .addFilterAt(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //            .formLogin()
 //                .defaultSuccessUrl("/")
@@ -172,7 +177,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler())
                 .and()
-//                .securityContext(context -> context.securityContextRepository())
+                .securityContext(context -> context.securityContextRepository(jwtSecurityContextRepository()))
 
 //                .sessionManagement()
 //                .sessionFixation().changeSessionId()

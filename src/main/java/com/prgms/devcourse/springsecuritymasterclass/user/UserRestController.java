@@ -41,6 +41,7 @@ public class UserRestController {
         return new UserResponse(principal.getJwtToken(), user.getUsername(), user.getGroup().getName());
     }
 
+
 //    @GetMapping("/users/{username}/token")
 //    public String makeToken(@PathVariable String username){
 //        UserDetails userDetails = userService.loadUserByUsername(username);

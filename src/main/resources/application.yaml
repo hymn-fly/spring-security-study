@@ -6,6 +6,8 @@ jwt:
   expiry-seconds: 60
 
 spring:
+  main:
+    allow-circular-references: true
   h2:
     console:
       enabled: true
@@ -21,7 +23,7 @@ spring:
       schema-locations: classpath:sql/schema.sql
       data-locations: classpath:sql/data.sql
       encoding: UTF-8
-      mode: always
+      mode: never
 
   application:
     name: spring security 01

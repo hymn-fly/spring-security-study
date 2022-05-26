@@ -1,78 +1,51 @@
 package com.prgms.devcourse.springsecuritymasterclass.user;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.springframework.util.StringUtils.hasText;
 
 @Entity
 @Table(name="users")
-public class User extends BaseEntity implements UserDetails {
+public class User extends BaseEntity{
 
-    @Column(name="login_id", length = 20)
-    private String loginId;
+    @Column(name="username", length = 20)
+    private String username;
 
-    @Column(name="passwd", length=80)
-    private String passWord;
+    @Column(name="provider")
+    private String provider;
+
+    @Column(name="provider_id")
+    private String providerId;
+
+    @Column(name="profile_image")
+    private String profileImage;
 
     @ManyToOne(optional = false)
     @JoinColumn(name="group_id")
     private Group group;
 
-    public void checkPassword(PasswordEncoder passwordEncoder, String credentials){
-        if(!passwordEncoder.matches(credentials, passWord)){
-            throw new IllegalArgumentException("비밀번호가 다릅니다.");
-        }
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.group.getPermissions()
-                .stream().map(GroupPermission::getPermission)
-                .collect(Collectors.toList());
-    }
-
-    public String[] getAuthoritiesArray() {
-        return this.group.getPermissions()
-                .stream().map(gp -> gp.getPermission().toString())
-                .toArray(String[]::new);
-    }
-
     public Group getGroup(){
         return group;
     }
 
-
-    @Override
-    public String getPassword() {
-        return passWord;
+    public Optional<String> getProfileImage(){
+        return Optional.ofNullable(profileImage);
     }
 
-    @Override
-    public String getUsername() {
-        return loginId;
-    }
+    protected User() {/* no op */}
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public User(String username, String provider, String providerId, String profileImage, Group group){
+        checkArgument(hasText(username));
+        checkArgument(hasText(provider));
+        checkArgument(hasText(providerId));
+        checkArgument(group != null);
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true ;
+        this.username = username;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.profileImage = profileImage;
+        this.group = group;
     }
 }

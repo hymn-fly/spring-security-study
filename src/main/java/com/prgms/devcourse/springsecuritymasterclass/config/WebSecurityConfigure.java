@@ -2,7 +2,6 @@ package com.prgms.devcourse.springsecuritymasterclass.config;
 
 import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
-import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationProvider;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtSecurityContextRepository;
 import com.prgms.devcourse.springsecuritymasterclass.oauth.OauthAuthenticationSuccessHandler;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
@@ -11,11 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.vote.UnanimousBased;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,18 +18,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @EnableWebSecurity(debug = true)
 @Configuration
@@ -56,21 +42,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
         this.userService = userService;
     }
 
-    @Bean
-    public JwtAuthenticationProvider jwtAuthenticationProvider(){
-        return new JwtAuthenticationProvider(jwt(jwtConfiguration), userService);
-    }
-
-    @Autowired
-    public void configureAuthentication(AuthenticationManagerBuilder builder, JwtAuthenticationProvider provider){
-        builder.authenticationProvider(provider);
-    }
-
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
 
 //    @Override
 //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -109,16 +80,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .antMatchers("/assets/**", "/h2-console/**");
     }
 
-
-
-    @Bean
-    public AccessDecisionManager customAccessDecisionManager(){
-        List<AccessDecisionVoter<?>> voters = new ArrayList<>();
-        voters.add(new WebExpressionVoter());
-        voters.add(new OddAdminVoter(new AntPathRequestMatcher("/admin")));
-        return new UnanimousBased(voters);
-    }
-
     @Bean
     Jwt jwt(JwtConfiguration jwtConfiguration){
         return new Jwt(
@@ -139,7 +100,8 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     }
 
     private AuthenticationSuccessHandler oauthSuccessHandler(){
-        return new OauthAuthenticationSuccessHandler();
+        Jwt jwt = getApplicationContext().getBean(Jwt.class);
+        return new OauthAuthenticationSuccessHandler(userService, jwt);
     }
 
     @Override
@@ -148,7 +110,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/user/me").hasAnyRole("USER", "ADMIN")
 //                .antMatchers("/admin").access("hasRole('ADMIN') and isFullyAuthenticated()")
                 .anyRequest().permitAll()
-                .accessDecisionManager(customAccessDecisionManager())
                 .and()
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)

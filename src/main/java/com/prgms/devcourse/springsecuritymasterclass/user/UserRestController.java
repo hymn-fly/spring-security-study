@@ -13,11 +13,8 @@ public class UserRestController {
 
     private final UserService userService;
 
-    private final AuthenticationManager authenticationManager;
-
-    public UserRestController(UserService userService, AuthenticationManager authenticationManager) {
+    public UserRestController(UserService userService) {
         this.userService = userService;
-        this.authenticationManager = authenticationManager;
     }
 
     @GetMapping("/user/me")

@@ -31,16 +31,6 @@ public class UserRestController {
                 .orElseThrow(() -> new IllegalArgumentException("Could not find user for " + principal.getUsername()));
     }
 
-    @PostMapping("/user/login")
-    public UserResponse login(@RequestBody LoginRequest request){
-        User user = userService.login(request.user, request.password);
-        JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(request.user, request.password);
-
-        Authentication resultToken = authenticationManager.authenticate(authenticationToken);
-        JwtPrincipal principal = (JwtPrincipal)resultToken.getPrincipal();
-        return new UserResponse(principal.getJwtToken(), user.getUsername(), user.getGroup().getName());
-    }
-
 
 //    @GetMapping("/users/{username}/token")
 //    public String makeToken(@PathVariable String username){

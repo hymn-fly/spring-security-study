@@ -4,6 +4,7 @@ import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationProvider;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtSecurityContextRepository;
+import com.prgms.devcourse.springsecuritymasterclass.oauth.OauthAuthenticationSuccessHandler;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +29,8 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -38,7 +39,6 @@ import java.util.Map;
 
 @EnableWebSecurity(debug = true)
 @Configuration
-@EnableJdbcHttpSession
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -54,11 +54,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     @Autowired
     public void setUserService(UserService userService){
         this.userService = userService;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new DelegatingPasswordEncoder("noop", Map.of("noop", NoOpPasswordEncoder.getInstance()));
     }
 
     @Bean
@@ -143,6 +138,9 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
         return new JwtSecurityContextRepository(jwtConfiguration.getHeader(), jwt);
     }
 
+    private AuthenticationSuccessHandler oauthSuccessHandler(){
+        return new OauthAuthenticationSuccessHandler();
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -179,7 +177,8 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler())
                 .and()
-                .securityContext(context -> context.securityContextRepository(jwtSecurityContextRepository()))
+                .oauth2Login(oauth -> oauth.successHandler(oauthSuccessHandler()))
+
 
 //                .sessionManagement()
 //                .sessionFixation().changeSessionId()

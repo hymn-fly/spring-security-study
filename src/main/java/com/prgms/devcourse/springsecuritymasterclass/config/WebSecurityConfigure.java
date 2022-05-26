@@ -20,10 +20,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 import javax.servlet.http.HttpServletResponse;
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Configuration
 public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -94,10 +95,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
         return new JwtAuthenticationFilter(jwt, jwtConfiguration.getHeader());
     }
 
-    private JwtSecurityContextRepository jwtSecurityContextRepository(){
-        Jwt jwt = getApplicationContext().getBean(Jwt.class);
-        return new JwtSecurityContextRepository(jwtConfiguration.getHeader(), jwt);
-    }
 
     private AuthenticationSuccessHandler oauthSuccessHandler(){
         Jwt jwt = getApplicationContext().getBean(Jwt.class);
@@ -117,7 +114,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .headers(AbstractHttpConfigurer::disable)
                 .rememberMe(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
+                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
 //                .addFilterAt(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //            .formLogin()
 //                .defaultSuccessUrl("/")

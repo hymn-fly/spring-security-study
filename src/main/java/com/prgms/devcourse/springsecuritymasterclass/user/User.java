@@ -30,6 +30,8 @@ public class User extends BaseEntity{
         return group;
     }
 
+    public String getUsername(){ return username; }
+
     public Optional<String> getProfileImage(){
         return Optional.ofNullable(profileImage);
     }

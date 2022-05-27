@@ -5,6 +5,10 @@ jwt:
   # HS512 알고리즘으로 수행할 것이기에 키 길이 64바이트로 해야함
   expiry-seconds: 60
 
+logging:
+  level:
+    org.springframework.security: TRACE
+
 spring:
   main:
     allow-circular-references: true
@@ -24,6 +28,7 @@ spring:
       data-locations: classpath:sql/data.sql
       encoding: UTF-8
       mode: never
+
 
   application:
     name: spring security 01

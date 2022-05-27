@@ -17,10 +17,10 @@
         아님 아예 appender-ref를 안하거나 해야 함-->
     </logger>
 
-    <logger name="jdbc.sqltiming" level="INFO"/>
+    <logger name="jdbc.sqltiming" level="OFF"/>
     <logger name="jdbc.audit" level="OFF"/>
     <logger name="jdbc.resultset" level="OFF"/>
-    <logger name="jdbc.resultsettable" level="INFO"/>
+    <logger name="jdbc.resultsettable" level="OFF"/>
     <logger name="jdbc.connection" level="OFF"/>
     <logger name="jdbc.sqlonly" level="OFF"/>
 

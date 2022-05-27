@@ -3,6 +3,7 @@ package com.prgms.devcourse.springsecuritymasterclass.config;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.Jwt;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtAuthenticationFilter;
 import com.prgms.devcourse.springsecuritymasterclass.jwt.JwtSecurityContextRepository;
+import com.prgms.devcourse.springsecuritymasterclass.oauth.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.prgms.devcourse.springsecuritymasterclass.oauth.OauthAuthenticationSuccessHandler;
 import com.prgms.devcourse.springsecuritymasterclass.user.UserService;
 import org.slf4j.Logger;
@@ -18,11 +19,16 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.util.SerializationUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Base64;
 
 @EnableWebSecurity
 @Configuration
@@ -98,7 +104,13 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
 
     private AuthenticationSuccessHandler oauthSuccessHandler(){
         Jwt jwt = getApplicationContext().getBean(Jwt.class);
+
         return new OauthAuthenticationSuccessHandler(userService, jwt);
+    }
+
+    @Bean
+    AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieRequestRepository(){
+        return new HttpCookieOAuth2AuthorizationRequestRepository();
     }
 
     @Override
@@ -115,6 +127,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .rememberMe(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterAfter(jwtAuthenticationFilter(), SecurityContextPersistenceFilter.class)
+
 //                .addFilterAt(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 //            .formLogin()
 //                .defaultSuccessUrl("/")
@@ -135,7 +148,9 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler())
                 .and()
-                .oauth2Login(oauth -> oauth.successHandler(oauthSuccessHandler()))
+                .oauth2Login(oauth -> oauth.successHandler(oauthSuccessHandler())
+                        .authorizationEndpoint()
+                        .authorizationRequestRepository(cookieRequestRepository()))
 
 
 //                .sessionManagement()
